@@ -1,11 +1,11 @@
+import 'reflect-metadata';
+import 'src/Program';
+import { container } from 'tsyringe';
 import express from 'express';
 import {
   RegisterBookApplicationService,
   RegisterBookCommand,
 } from 'Application/Book/RegisterBookApplicationService/RegisterBookApplicationService';
-import { PrismaBookRepository } from 'Infrastructure/Prisma/Book/PrismaBookRepository';
-import { PrismaClientManager } from 'Infrastructure/Prisma/PrismaClientManager';
-import { PrismaTransactionManager } from 'Infrastructure/Prisma/PrismaTransactionManager';
 
 const app = express();
 const port = 3000;
@@ -28,12 +28,8 @@ app.post('/book', async (req, res) => {
       priceAmount: number;
     };
 
-    const clientManager = new PrismaClientManager();
-    const transactionManager = new PrismaTransactionManager(clientManager);
-    const bookRepository = new PrismaBookRepository(clientManager);
-    const registerBookApplicationService = new RegisterBookApplicationService(
-      bookRepository,
-      transactionManager
+    const registerBookApplicationService = container.resolve(
+      RegisterBookApplicationService
     );
 
     // リクエストボディをコマンドに変換。今回はたまたま一致しているため、そのまま渡している。

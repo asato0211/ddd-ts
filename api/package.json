@@ -18,9 +18,11 @@
     "lodash": "^4.17.21",
     "nanoid": "3",
     "prisma": "^5.9.1",
+    "reflect-metadata": "^0.2.1",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "tsyringe": "^4.8.0",
     "typescript": "^5.3.3"
   }
 }
