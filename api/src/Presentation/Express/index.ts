@@ -1,11 +1,12 @@
 import 'reflect-metadata';
-import 'src/Program';
+import 'Program';
 import { container } from 'tsyringe';
 import express from 'express';
 import {
   RegisterBookApplicationService,
   RegisterBookCommand,
 } from 'Application/Book/RegisterBookApplicationService/RegisterBookApplicationService';
+import { BookLogSubscriber } from 'Application/shared/DomainEvent/subscribers/BookLogSubscriber';
 
 const app = express();
 const port = 3000;
@@ -16,6 +17,9 @@ app.get('/', (_, res) => {
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
+
+  // サブスクライバーを登録
+  container.resolve(BookLogSubscriber);
 });
 
 // JSON形式のリクエストボディを正しく解析するために必要

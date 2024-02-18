@@ -6,6 +6,7 @@ import { Stock } from './Stock/Stock';
 import { StockId } from './Stock/StockId/StockId';
 import { QuantityAvailable } from './Stock/QuantityAvailable/QuantityAvailable';
 import { Status, StatusEnum } from './Stock/Status/Status';
+import { BOOK_EVENT_NAME } from 'Domain/shared/DomainEvent/Book/BookDomainEventFactory';
 
 // nanoid をモック
 jest.mock('nanoid', () => ({
@@ -35,6 +36,9 @@ describe('Book', () => {
       expect(book.stockId.equals(new StockId('testIdWithExactLength'))).toBeTruthy();
       expect(book.quantityAvailable.equals(new QuantityAvailable(0))).toBeTruthy();
       expect(book.status.equals(new Status(StatusEnum.OutOfStock))).toBeTruthy();
+
+      // 期待するドメインイベントが記録されているかどうかを検証する
+      expect(book.getDomainEvents()[0].eventName).toBe(BOOK_EVENT_NAME.CREATED);
     });
   });
 

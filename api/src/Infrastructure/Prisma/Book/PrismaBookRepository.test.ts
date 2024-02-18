@@ -9,6 +9,7 @@ import { QuantityAvailable } from 'Domain/models/Book/Stock/QuantityAvailable/Qu
 import { Status, StatusEnum } from 'Domain/models/Book/Stock/Status/Status';
 import { Stock } from 'Domain/models/Book/Stock/Stock';
 import { PrismaClientManager } from 'Infrastructure/Prisma/PrismaClientManager';
+import { IDomainEventPublisher } from 'Domain/shared/DomainEvent/IDomainEventPublisher';
 
 const prisma = new PrismaClient();
 
@@ -20,6 +21,10 @@ describe('PrismaBookRepository', () => {
 
   const clientManager = new PrismaClientManager();
   const repository = new PrismaBookRepository(clientManager);
+  const mockDomainEventPublisher = {
+    publish: jest.fn(),
+  } as IDomainEventPublisher;
+
 
   test('saveした集約がfindで取得できる', async () => {
     const bookId = new BookId('9784167158057');
@@ -29,7 +34,7 @@ describe('PrismaBookRepository', () => {
       currency: 'JPY',
     });
     const book = Book.create(bookId, title, price);
-    await repository.save(book);
+    await repository.save(book, mockDomainEventPublisher);
 
     const createdEntity = await repository.find(bookId);
     expect(createdEntity?.bookId.equals(bookId)).toBeTruthy();
@@ -38,6 +43,9 @@ describe('PrismaBookRepository', () => {
     expect(createdEntity?.stockId.equals(book.stockId)).toBeTruthy();
     expect(createdEntity?.quantityAvailable.equals(book.quantityAvailable)).toBeTruthy();
     expect(createdEntity?.status.equals(book.status)).toBeTruthy();
+
+    // ドメインイベントがpublishされた事を確認
+    expect(mockDomainEventPublisher.publish).toHaveBeenCalledTimes(1);
   });
 
   test('updateできる', async () => {
@@ -56,7 +64,7 @@ describe('PrismaBookRepository', () => {
       }),
       stock
     );
-    await repository.update(book);
+    await repository.update(book, mockDomainEventPublisher);
 
     const updatedEntity = await repository.find(createdEntity.bookId);
     expect(updatedEntity?.bookId.equals(book.bookId)).toBeTruthy();
@@ -65,6 +73,9 @@ describe('PrismaBookRepository', () => {
     expect(updatedEntity?.stockId.equals(book.stockId)).toBeTruthy();
     expect(updatedEntity?.quantityAvailable.equals(book.quantityAvailable)).toBeTruthy();
     expect(updatedEntity?.status.equals(book.status)).toBeTruthy();
+
+    // ドメインイベントがpublishされた事を確認
+    expect(mockDomainEventPublisher.publish).toHaveBeenCalledTimes(1);
   });
 
   test('deleteできる', async () => {
@@ -72,8 +83,11 @@ describe('PrismaBookRepository', () => {
     const readEntity = await repository.find(createdEntity.bookId);
     expect(readEntity).not.toBeNull();
 
-    await repository.delete(createdEntity.bookId);
+    await repository.delete(createdEntity, mockDomainEventPublisher);
     const deletedEntity = await repository.find(createdEntity.bookId);
     expect(deletedEntity).toBeNull();
+
+    // ドメインイベントがpublishされた事を確認
+    expect(mockDomainEventPublisher.publish).toHaveBeenCalledTimes(1);
   });
 });

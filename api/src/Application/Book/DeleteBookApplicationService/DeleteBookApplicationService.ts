@@ -1,15 +1,22 @@
 import { ITransactionManager } from 'Application/shared/ITransactionManager';
 import { BookId } from 'Domain/models/Book/BookId/BookId';
 import { IBookRepository } from 'Domain/models/Book/IBookRepository';
+import { injectable, inject } from 'tsyringe';
+import { IDomainEventPublisher } from 'Domain/shared/DomainEvent/IDomainEventPublisher';
 
 export type DeleteBookCommand = {
   bookId: string;
 };
 
+@injectable()
 export class DeleteBookApplicationService {
   constructor(
+    @inject('IBookRepository')
     private bookRepository: IBookRepository,
-    private transactionManager: ITransactionManager
+    @inject('ITransactionManager')
+    private transactionManager: ITransactionManager,
+    @inject('IDomainEventPublisher')
+    private domainEventPublisher: IDomainEventPublisher
   ) {}
 
   async execute(command: DeleteBookCommand): Promise<void> {
@@ -22,7 +29,7 @@ export class DeleteBookApplicationService {
 
       book.delete();
 
-      await this.bookRepository.delete(book.bookId);
+      await this.bookRepository.delete(book, this.domainEventPublisher);
     });
   }
 }
